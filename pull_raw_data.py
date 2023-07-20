@@ -197,6 +197,22 @@ def get_gitlab_ci_file_content(project, branch_name):
         # File does not exist
         return ''
     
+def get_jenkins_file_content(project, branch_name):
+    try:
+        # Specify file path
+        file_path = 'Jenkinsfile'
+
+        # Get file from repository
+        file = project.files.get(file_path=file_path, ref=branch_name)
+
+        # Get file content
+        file_content = file.decode()
+
+        return file_content
+    except gitlab.exceptions.GitlabGetError:
+        # File does not exist
+        return ''
+
 def get_branch_data(gl, project):
     try:
         full_project = gl.projects.get(project.id)
@@ -205,6 +221,7 @@ def get_branch_data(gl, project):
         for branch in branches:
             commit = branch.commit
             gitlab_ci_file_content = get_gitlab_ci_file_content(gl, full_project, branch.name)
+            jenkins_file_content = get_jenkins_file_content(full_project, branch.name)
             branch_data.append({
                 "name": branch.name,
                 "merged": branch.merged,
@@ -225,12 +242,14 @@ def get_branch_data(gl, project):
                 "commit_title": commit['title'],
                 "commit_message": commit['message'],
                 "commit_parent_ids": commit['parent_ids'],
-                "gitlab-ci.yml content": gitlab_ci_file_content  # New field
+                "gitlab-ci.yml content": gitlab_ci_file_content,  # Existing field
+                "Jenkinsfile content": jenkins_file_content  # New field
             })
     except gitlab.exceptions.GitlabListError as e:
         print(f"Could not fetch branches for project {project.id}. Error: {e}")
         branch_data = []  # Return an empty list when an error occurs
     return branch_data
+
  
 def get_job_data(gl, project):
     try:

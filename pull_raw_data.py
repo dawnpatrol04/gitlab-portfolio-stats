@@ -2,6 +2,25 @@ import gitlab
 import os
 from dotenv import load_dotenv, find_dotenv
 import csv
+import logging
+
+def setup_logger(logger_name, log_file, level=logging.INFO):
+    logger = logging.getLogger(logger_name)
+    formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(message)s')
+    fileHandler = logging.FileHandler(log_file, mode='w')
+    fileHandler.setFormatter(formatter)
+    
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(formatter)
+
+    logger.setLevel(level)
+    logger.addHandler(fileHandler)
+    logger.addHandler(streamHandler)
+    return logger
+
+# Setup the logger
+logger = setup_logger("gitlab_logger", "gitlab_log.txt")
+
 
 def connect_to_gitlab():
     # load environment variables GITLAB-TOKEN and GITLAB_URL
@@ -345,13 +364,22 @@ def write_data_to_csv(file_name, data):
         else:
             print(f"No data to write for {file_name}.")
 
+
 if __name__ == "__main__":
+    logger.info("Starting script...")
+
     # Get all projects
     group_name = "fpas_colab"
+    logger.info("Connecting to GitLab...")
     gl = connect_to_gitlab()
+    logger.info("Connected to GitLab.")
+    
+    logger.info(f"Getting all projects for group: {group_name}...")
     all_projects = get_all_projects(gl, group_name)
+    logger.info(f"Retrieved {len(all_projects)} projects.")
 
     # Prepare data lists
+    logger.info("Preparing data lists...")
     project_data = get_project_data(all_projects)
     pipeline_data = []
     commit_data = []
@@ -365,16 +393,10 @@ if __name__ == "__main__":
 
     # Get data for each project
     for project in all_projects:
+        logger.info(f"Getting data for project: {project.id}...")
         pipeline_data = get_pipeline_data(gl, project)
-        # commit_data = get_commit_data(gl, project)
-        # schedule_data = get_pipeline_schedule_data(gl, project)
-        # runner_data = get_runner_data(gl, project)
-        # branch_data = get_branch_data(gl, project)
-        # job_data = get_job_data(gl, project)
-        # member_data = get_project_members(gl, project)
-        # merge_request_data = get_merge_request_data(gl, project)
-        # tag_data = get_project_tags(gl, project)
 
+    logger.info("Writing data to CSV files...")
     # Write data to CSV files
     write_data_to_csv('projects.csv', project_data)
     write_data_to_csv('pipelines.csv', pipeline_data)
@@ -386,3 +408,5 @@ if __name__ == "__main__":
     write_data_to_csv('members.csv', member_data)
     write_data_to_csv('merge_requests.csv', merge_request_data)
     write_data_to_csv('tags.csv', tag_data)
+    
+    logger.info("Script completed successfully.")s

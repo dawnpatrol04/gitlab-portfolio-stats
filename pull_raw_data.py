@@ -4,6 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 import csv
 import logging
 
+
 def setup_logger(logger_name, log_file, level=logging.INFO):
     logger = logging.getLogger(logger_name)
     formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(message)s')
@@ -239,7 +240,7 @@ def get_branch_data(gl, project):
         branch_data = []
         for branch in branches:
             commit = branch.commit
-            gitlab_ci_file_content = get_gitlab_ci_file_content(gl, full_project, branch.name)
+            gitlab_ci_file_content = get_gitlab_ci_file_content( full_project, branch.name)
             jenkins_file_content = get_jenkins_file_content(full_project, branch.name)
             branch_data.append({
                 "name": branch.name,

@@ -1,6 +1,7 @@
-from fastapi import APIRouter 
 import pandas as pd
-from utils.database import connect_to_db 
+from fastapi import APIRouter
+
+from src.utils.database import connect_to_db
 
 router = APIRouter()
 

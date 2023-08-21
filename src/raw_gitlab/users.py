@@ -1,11 +1,12 @@
-from raw_gitlab.projects import ProjectsDataRetriever, logger  # Assuming these are defined in projects.py
+from collections import OrderedDict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
+
 import pandas as pd
 
-from utils.database import connect_to_db
-from datetime import datetime, timedelta
-from collections import OrderedDict
+from src.raw_gitlab.projects import  ProjectsDataRetriever, logger 
+from src.utils.database import connect_to_db
+
 
 @dataclass
 class User:
@@ -27,33 +28,32 @@ class UsersDataRetriever(ProjectsDataRetriever):
 
         for member in members:
             user = self.gl.users.get(member.id)
-
-            # Attempt to fetch the email using the emails attribute
             email = ""
             try:
                 user_emails = user.emails.list()
                 email = user_emails[0].email if user_emails else ""
             except Exception as e:
                 logger.warning(f"Could not retrieve email for user {user.username}. Error: {e}")
+            try:
+                created_date = datetime.strptime(user.created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except AttributeError:
+                logger.warning(f"'User' object {user.id} ({user.username}) has no attribute 'created_at'. Skipping.")
+                continue
+            except ValueError as e:
+                logger.warning(f"Invalid date format for user {user.username}. Error: {e}")
+                continue
 
-            # Check if 'created_at' field is populated
-            if user.created_at:
-                try:
-                    usr = User(
-                        id=user.id,
-                        name=user.name,
-                        username=user.username,
-                        email=email,  # Use the fetched email here
-                        state=user.state,
-                        avatar_url=user.avatar_url,
-                        web_url=user.web_url,
-                        created_at=datetime.strptime(user.created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
-                    )
-                    self.stored_users.append(usr)
-                except ValueError as e:
-                    logger.warning(f"Invalid date format for user {user.username}. Error: {e}")
-            else:
-                logger.warning(f"User {user.username} does not have a populated 'created_at' field.")
+            usr = User(
+                id=user.id,
+                name=user.name,
+                username=user.username,
+                email=email,
+                state=user.state,
+                avatar_url=user.avatar_url,
+                web_url=user.web_url,
+                created_at=created_date
+            )
+            self.stored_users.append(usr)
 
     def retrieve_user_data(self, group_name="default_group_name"):
         logger.info("Starting user data retrieval...")
@@ -77,7 +77,10 @@ class UsersDataRetriever(ProjectsDataRetriever):
 
 
 if __name__ == "__main__":
+    from dotenv import find_dotenv, load_dotenv
+    load_dotenv(find_dotenv())
+    import os
 
-    UsersDataRetriever().refresh_data(group_name="test-group")
+    UsersDataRetriever().refresh_data(group_name=os.getenv('GITLAB_GROUP'))
     df = pd.read_sql("select * from users", connect_to_db())
     print(df.head())

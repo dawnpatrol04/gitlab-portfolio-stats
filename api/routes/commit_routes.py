@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from datetime import datetime
 import pandas as pd
-from utils.database import connect_to_db
+from src.utils.database import connect_to_db
 
 router = APIRouter()
 

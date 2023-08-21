@@ -1,12 +1,12 @@
-import pandas as pd
-from datetime import datetime
 import json
+from datetime import datetime
 
+import pandas as pd
 
-from utils.database import connect_to_db
-from src.value.dynamic_values  import get_num_pipeline_on_push, get_num_commits, get_num_projects, get_num_users
-# from imput_validaton import read_json_file, validate_data
-
+from src.utils.database import connect_to_db
+from src.value.dynamic_values import (get_num_commits,
+                                      get_num_pipeline_on_push,
+                                      get_num_projects, get_num_users)
 
 
 def fetch_data_from_db(query, params=None):

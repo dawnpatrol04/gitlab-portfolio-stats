@@ -1,13 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
-from utils.logger import setup_logger
-from utils.gitlab_connect import connect_to_gitlab
-from utils.database import connect_to_db
 
-from datetime import datetime 
-
-from utils.gitlab_connect import connect_to_gitlab
 import pandas as pd
+import gitlab
+from src.utils.database import connect_to_db
+from src.utils.gitlab_connect import connect_to_gitlab
+from src.utils.logger import setup_logger
 
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
 
@@ -37,9 +35,15 @@ class PipelinesDataRetriever:
 
         for project in gitlab_projects:
             full_project = self.gl.projects.get(project.id)
-            gitlab_pipelines = full_project.pipelines.list(all=True)
+            try:
+                gitlab_pipelines = full_project.pipelines.list(all=True)
+            except gitlab.exceptions.GitlabListError as e:
+                logger.warning(f"Failed to retrieve pipelines for project {project.id}: {e}")
+                continue
 
             for pipeline in gitlab_pipelines:
+                # rest of the code remains unchanged
+
                 pipe = Pipeline(
                     iid=pipeline.iid,
                     project_id=project.id,
@@ -71,7 +75,10 @@ class PipelinesDataRetriever:
         logger.info(f"Data refreshed for group: {group_name}")
 
 if __name__ == "__main__":
- 
-    PipelinesDataRetriever().refresh_data(group_name="test-group")
+    from dotenv import find_dotenv, load_dotenv
+    load_dotenv(find_dotenv())
+    import os
+
+    PipelinesDataRetriever().refresh_data(group_name=os.getenv('GITLAB_GROUP'))
     df = pd.read_sql("select * from pipelines", connect_to_db())
     print(df.head())

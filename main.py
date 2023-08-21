@@ -1,4 +1,5 @@
 from api.server import app
+import os
 
 if __name__ == "__main__":
     import uvicorn

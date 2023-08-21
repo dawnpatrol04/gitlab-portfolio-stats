@@ -1,5 +1,7 @@
 import pandas as pd
-from utils.database import connect_to_db
+
+from src.utils.database import connect_to_db
+
 
 def fetch_data_from_db(query, params=None):
     """Utility function to fetch data using pandas.read_sql."""

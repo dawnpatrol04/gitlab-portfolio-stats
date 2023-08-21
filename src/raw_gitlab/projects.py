@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
-from utils.logger import setup_logger
 
-from datetime import datetime 
-
-from utils.gitlab_connect import connect_to_gitlab
 import pandas as pd
 
-from utils.database import connect_to_db
+from src.utils.database import connect_to_db
+from src.utils.gitlab_connect import connect_to_gitlab
+from src.utils.logger import setup_logger
+
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
 
 @dataclass

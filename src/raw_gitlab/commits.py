@@ -1,13 +1,13 @@
+import json
+from collections import OrderedDict
 from dataclasses import dataclass
-from datetime import datetime
-from utils.logger import setup_logger
-from utils.gitlab_connect import connect_to_gitlab
-from utils.database import connect_to_db
+from datetime import datetime, timedelta
+
 import pandas as pd
 
-from datetime import datetime, timedelta
-from collections import OrderedDict
-import json
+from src.utils.database import connect_to_db
+from src.utils.gitlab_connect import connect_to_gitlab
+from src.utils.logger import setup_logger
 
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
 

@@ -4,3 +4,5 @@ uvicorn
 python-gitlab
 python-dotenv
 pydantic
+SQLAlchemy
+-e .

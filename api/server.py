@@ -1,10 +1,19 @@
-
 from fastapi import FastAPI
-from api.routes import router
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
+
+from api.routes import user_router, pipeline_router, project_router , commit_router , general_router , value_router
+
 
 
 app = FastAPI()
+
+app.include_router(user_router, tags=["users"])
+app.include_router(pipeline_router, tags=["pipelines"])
+app.include_router(project_router, tags=["projects"])
+app.include_router(commit_router, tags=["commits"])
+app.include_router(general_router,  tags=["general"])
+app.include_router(value_router, tags=["value"])
+
 
 
 origins = [
@@ -19,4 +28,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(router)

@@ -14,6 +14,6 @@ source .venv/bin/activate
 echo "Installing requirements..."
 pip install -r requirements.txt
 
-# Start the application
+# # Start the application
 echo "Starting the application..."
 uvicorn main:app --reload

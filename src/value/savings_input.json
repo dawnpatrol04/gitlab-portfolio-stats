@@ -1,0 +1,107 @@
+[
+  {
+    "process_name": "Automated Testing",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on manually executing each test case.",
+      "time_hrs": 0.5
+    },
+    "after_process": {
+      "description": "Time spent on writing and executing test scripts for automated testing.",
+      "time_hrs": 0.05
+    },
+    "dynamic_values": {
+      "num_pipeline_on_push": "dynamic"
+    }
+  },
+  {
+    "process_name": "Centralized Logging",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on checking each service individually for logs.",
+      "time_hrs": 0.2
+    },
+    "after_process": {
+      "description": "Time spent on viewing logs from a single centralized dashboard.",
+      "time_hrs": 0.05
+    },
+    "dynamic_values": {
+      "num_projects": "dynamic"
+    }
+  },
+  {
+    "process_name": "Containerization",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on setting up individual environments for each application or service.",
+      "time_hrs": 2
+    },
+    "after_process": {
+      "description": "Time saved in setting up and managing environments using containers.",
+      "time_hrs": 0.5
+    },
+    "dynamic_values": {
+      "num_projects": "dynamic"
+    }
+  },
+  {
+    "process_name": "Secrets Management",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on manually changing passwords and updating them in the code.",
+      "time_hrs": 0.5
+    },
+    "after_process": {
+      "description": "Time saved by automatically changing passwords and pulling them via API. No code changes required.",
+      "time_hrs": 0
+    },
+    "dynamic_values": {
+      "num_projects": "dynamic"
+    }
+  },
+  {
+    "process_name": "Servers Iac",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on servers for setup / configuration / maintenance.",
+      "time_hrs": 3
+    },
+    "after_process": {
+      "description": "Infrastructure as Code (IaC) with a centralized code repository. Update all servers at once / ensure consistency/ one click setup for new servers.",
+      "time_hrs": 0.25
+    },
+    "dynamic_values": {
+      "num_projects": "dynamic"
+    }
+  },
+  {
+    "process_name": "Deployment",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on manual deployment tasks.",
+      "time_hrs": 0.5
+    },
+    "after_process": {
+      "description": "Time spent on automated deployment tasks using CI/CD.",
+      "time_hrs": 0
+    },
+    "dynamic_values": {
+      "num_pipeline_on_push": "dynamic"
+    }
+  },
+  {
+    "process_name": "Standardized Logic",
+    "hourly_rate": 38.46,
+    "before_process": {
+      "description": "Time spent on creating separate versions and refactoring every deployment.",
+      "time_hrs": 1
+    },
+    "after_process": {
+      "description": "Time saved by avoiding refactoring and managing multiple versions using standardized templates.",
+      "time_hrs": 0
+    },
+    "dynamic_values": {
+      "num_pipeline_on_push": "dynamic"
+    }
+  }
+]

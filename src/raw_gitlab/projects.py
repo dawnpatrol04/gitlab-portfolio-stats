@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
 from utils.logger import setup_logger
+
+from datetime import datetime 
+
 from utils.gitlab_connect import connect_to_gitlab
+import pandas as pd
 
-from datetime import datetime, timedelta
-from collections import OrderedDict
-
+from utils.database import connect_to_db
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
 
 @dataclass
@@ -40,7 +42,8 @@ class Project:
     is_example_project: bool
 
 
-class GitLabDataRetriever:
+
+class ProjectsDataRetriever:
     stored_projects = []  # This will store the projects data
 
     def __init__(self):
@@ -49,11 +52,11 @@ class GitLabDataRetriever:
     def get_all_projects(self, group_name):
         group = self.gl.groups.get(group_name)
         gitlab_projects = group.projects.list(all=True, include_subgroups=True)
-        
+
         example_projects = [
             # ... [list of projects as you've provided]
         ]
-            
+
         for project in gitlab_projects:
             proj = Project(
                 id=project.id,
@@ -92,27 +95,23 @@ class GitLabDataRetriever:
         self.get_all_projects(group_name)
         logger.info(f"Retrieved {len(self.stored_projects)} projects.")
 
-def get_project_count_per_month(projects):
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=6*30)  # Approximation for 6 months
-    
-    # Initialize an ordered dictionary with zeros for all months in the range
-    monthly_counts = OrderedDict()
-    for month_offset in range(6, -1, -1):
-        month_year = (end_date - timedelta(days=30*month_offset)).strftime('%B %Y')
-        monthly_counts[month_year] = 0
+    # save data to sqlite db using pandas to_sql
+    def save_data(self):
+        logger.info("Saving data to database...")
+        df = pd.DataFrame([project.__dict__ for project in self.stored_projects])
+        # Add the following
+        df['namespace'] = df['namespace'].apply(str)
+        df.to_sql("projects", connect_to_db(), if_exists="replace", index=False)
+        logger.info("Data saved to database.")
+        
 
-    # Update counts based on the projects' creation date
-    for project in projects:
-        if start_date <= project.created_at <= end_date:
-            month_year = project.created_at.strftime('%B %Y')
-            monthly_counts[month_year] += 1
-
-    return monthly_counts
-
-
+    def refresh_data(self, group_name):
+        self.retrieve_data(group_name)
+        self.save_data()
+        logger.info(f"Data refreshed for group: {group_name}")
 
 if __name__ == "__main__":
-    retriever = GitLabDataRetriever()
-    retriever.retrieve_data("test-group")
-    print(GitLabDataRetriever.stored_projects)  # Print the stored projectss
+ 
+    ProjectsDataRetriever().refresh_data(group_name="test-group")
+    df = pd.read_sql("select * from projects", connect_to_db())
+    print(df.head())

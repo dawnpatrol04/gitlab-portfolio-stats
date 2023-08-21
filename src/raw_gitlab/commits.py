@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from utils.logger import setup_logger
 from utils.gitlab_connect import connect_to_gitlab
+from utils.database import connect_to_db
+import pandas as pd
 
 from datetime import datetime, timedelta
 from collections import OrderedDict
-
+import json
 
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
 
@@ -22,10 +24,10 @@ class Commit:
     committer_date: datetime  # Added this line
     created_at: datetime
     message: str
-    parent_ids: list
+    parent_ids: str
     web_url: str
     
-class GitLabCommitDataRetriever:
+class CommitsDataRetriever:
     stored_commits = []  # This will store the commits data
 
     def __init__(self):
@@ -34,7 +36,7 @@ class GitLabCommitDataRetriever:
     def get_all_commits(self, group_name):
         group = self.gl.groups.get(group_name)
         gitlab_projects = group.projects.list(all=True, include_subgroups=True)
-            
+
         for project in gitlab_projects:
             full_project = self.gl.projects.get(project.id)
             gitlab_commits = full_project.commits.list(all=True)
@@ -52,7 +54,7 @@ class GitLabCommitDataRetriever:
                     committer_date=datetime.fromisoformat(commit.committed_date),
                     created_at=datetime.fromisoformat(commit.created_at),
                     message=commit.message,
-                    parent_ids=commit.parent_ids,
+                    parent_ids=json.dumps(commit.parent_ids), 
                     web_url=commit.web_url
                 )
                 self.stored_commits.append(com)  # Store the data in the class variable
@@ -62,26 +64,20 @@ class GitLabCommitDataRetriever:
         self.get_all_commits(group_name)
         logger.info(f"Retrieved {len(self.stored_commits)} commits.")
 
-def get_commit_count_per_month(commits):
-    end_date = datetime.now().astimezone(None)  # Make timezone-naive
-    start_date = (end_date - timedelta(days=15*30)).astimezone(None)  # Make timezone-naive
-
-
-    # Initialize an ordered dictionary with zeros for all months in the range
-    monthly_counts = OrderedDict()
-    for month_offset in range(15, -1, -1):
-        month_year = (end_date - timedelta(days=30*month_offset)).strftime('%B %Y')
-        monthly_counts[month_year] = 0
-
-    # Update counts based on the commits' data
-    for commit in commits:
-        if start_date <= commit.created_at <= end_date:
-            month_year = commit.created_at.strftime('%B %Y')
-            monthly_counts[month_year] += 1
-
-    return monthly_counts
-
+    def save_data(self):
+        logger.info("Saving data to database...")
+        df = pd.DataFrame([commit.__dict__ for commit in self.stored_commits])  # Note the change here
+        df.to_sql("commits", connect_to_db(), if_exists="replace", index=False)
+        logger.info("Data saved to database.")
+    
+    #  refresh data
+    def refresh_data(self, group_name):
+        self.retrieve_data(group_name)
+        self.save_data()
+        logger.info(f"Data refreshed for group: {group_name}")
+ 
 if __name__ == "__main__":
-    retriever = GitLabCommitDataRetriever()
-    retriever.retrieve_data("test-group")
-    print(GitLabCommitDataRetriever.stored_commits)  # Print the stored commits
+ 
+    CommitsDataRetriever().refresh_data(group_name="test-group")
+    df = pd.read_sql("select * from commits", connect_to_db())
+    print(df.head())

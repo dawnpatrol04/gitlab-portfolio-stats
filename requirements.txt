@@ -6,4 +6,5 @@ python-dotenv
 pydantic
 SQLAlchemy
 pandas
+requests
 -e .

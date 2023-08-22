@@ -31,3 +31,31 @@ def projects_per_month():
         "data": data_values
     }
 
+@router.get("/projects/details/", tags=["projects"])
+def project_details():
+    query = '''
+        SELECT 
+            p.id AS project_id,
+            p.name AS project_name,
+            p.description,
+            p.visibility,
+            p.web_url,
+            p.open_issues_count,
+            p.last_activity_at,
+            COUNT(DISTINCT pl.iid) AS pipeline_count,
+            COUNT(DISTINCT c.id) AS commit_count,
+            u.name AS creator_name 
+        FROM projects p
+        LEFT JOIN pipelines pl ON p.id = pl.project_id
+        LEFT JOIN commits c ON p.id = c.id -- Assuming a relationship exists
+        LEFT JOIN users u ON p.creator_id = u.id
+        GROUP BY p.id;
+    '''
+    df = pd.read_sql(query, connect_to_db())
+    
+    # Convert the dataframe to a dictionary for returning as JSON
+    result = df.to_dict(orient="records")
+
+    return result
+
+

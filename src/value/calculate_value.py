@@ -158,6 +158,25 @@ def get_value_over_time(start_date, end_date=None):
     # Print the results json formatting
     return savings
 
+def reformat_month_names(data):
+    """
+    Reformats month names from 'August 2023' to 'Aug 23'.
+
+    Args:
+    - data (dict): Input data with month names to be reformatted.
+
+    Returns:
+    - dict: Data with reformatted month names.
+    """
+    reformatted_data = {}
+    for process, months in data.items():
+        reformatted_data[process] = {}
+        for month, values in months.items():
+            formatted_month = datetime.strptime(month, '%B %Y').strftime('%b %y')
+            reformatted_data[process][formatted_month] = values
+
+    return reformatted_data
+
 def get_value_over_time_for_ui(start_date, end_date=None):
     """
     Reformats the savings data to a structure suitable for CoreUI data tables.
@@ -181,7 +200,7 @@ def get_value_over_time_for_ui(start_date, end_date=None):
                 "cost_saved": process["cost_saved"]
             }
 
-    return reformatted_data
+    return reformat_month_names(reformatted_data)
 
 
 

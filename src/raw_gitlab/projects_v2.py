@@ -14,7 +14,7 @@ load_dotenv(find_dotenv())
 GITLAB_URL = os.getenv('GITLAB_URL')
 GITLAB_TOKEN = os.getenv('GITLAB_TOKEN')
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
-
+logging = setup_logger("gitlab_logger", "gitlab_log.txt")
 # Helper functions
 def file_exists(project, file_name):
     default_branch = project.default_branch
@@ -108,35 +108,53 @@ def fetch_repository_size(project_id):
 
 
 
-
-
-
-
+ 
 def fetch_gitlab_data(group_name):
-    gl = connect_to_gitlab()
-    group = gl.groups.get(group_name)
-    gitlab_projects = group.projects.list(all=True, include_subgroups=True)
+    # Log that the function has started
+    logging.info("Fetching data for GitLab group: %s", group_name)
+    
+    try:
+        gl = connect_to_gitlab()
+    except Exception as e:
+        logging.error("Error connecting to GitLab: %s", e)
+        return None  # Optionally: raise the error
+
+    try:
+        group = gl.groups.get(group_name)
+        gitlab_projects = group.projects.list(all=True, include_subgroups=True)
+    except Exception as e:
+        logging.error("Error fetching projects for group %s: %s", group_name, e)
+        return None  # Optionally: raise the error
+
     projects_list = []
 
     for project in gitlab_projects:
-        full_project = gl.projects.get(project.id)
+        try:
+            logger.info("Fetching data for project %s", project.id)
+            full_project = gl.projects.get(project.id)
 
-        # Fetching the project's statistics using the defined function
-        repository_size = fetch_repository_size(full_project.id)
+            # Fetching the project's statistics using the defined function
+            repository_size = fetch_repository_size(full_project.id)
 
-        project_data = {
-            'name': full_project.name,
-            'repository_size': repository_size,  # Storing the repository_size in the data
-            'ui': True,  # Placeholder column
-            'batch': True,  # Placeholder column
-            'branch_count': 3  # Placeholder column
-        }
-        project_data.update(get_project_attributes(full_project))
-        project_data.update(fetch_ci_data(gl, full_project))
-        project_data.update(fetch_docker_data(gl, full_project))
-        project_data.update(fetch_env_data(gl, full_project))
+            project_data = {
+                'name': full_project.name,
+                'repository_size': repository_size,  # Storing the repository_size in the data
+                'ui': True,  # Placeholder column
+                'batch': True,  # Placeholder column
+                'branch_count': 3  # Placeholder column
+            }
+            project_data.update(get_project_attributes(full_project))
+            project_data.update(fetch_ci_data(gl, full_project))
+            project_data.update(fetch_docker_data(gl, full_project))
+            project_data.update(fetch_env_data(gl, full_project))
 
-        projects_list.append(project_data)
+            projects_list.append(project_data)
+
+        except Exception as e:
+            logging.error("Error processing project %s: %s", project.id, e)
+            # Optionally: Continue with the next project, or raise the error
+
+    logging.info("Finished fetching data for %d projects", len(projects_list))
 
     return pd.DataFrame(projects_list)
 

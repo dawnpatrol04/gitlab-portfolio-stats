@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from api.routes import user_router, pipeline_router, project_router , commit_router , general_router , value_router
+from api.routes import user_router, pipeline_router, project_router , commit_router , general_router , value_router , project_router_v2
 
 
 
@@ -13,6 +13,7 @@ app.include_router(project_router, tags=["projects"])
 app.include_router(commit_router, tags=["commits"])
 app.include_router(general_router,  tags=["general"])
 app.include_router(value_router, tags=["value"])
+app.include_router(project_router_v2, tags=["projects_v2"])
 
 
 

@@ -165,3 +165,6 @@ gitlab_log.txt
 *.db
 *CodeRunnerFile.py
 gitlab.sqlite
+projects_test.csv
+.vscode/settings.json
+docs/buldout_docs/ops_project_dash.md

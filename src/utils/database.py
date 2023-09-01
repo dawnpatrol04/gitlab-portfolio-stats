@@ -4,7 +4,7 @@ def connect_to_db():
     conn = sqlite3.connect('gitlab.sqlite')
     return conn
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine 
 
 # sqlite database connection
 def connect_to_db_engine():

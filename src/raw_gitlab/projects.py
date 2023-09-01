@@ -17,6 +17,7 @@ class Project:
     visibility: str
     ssh_url_to_repo: str
     http_url_to_repo: str
+    http_url_to_repo: str
     web_url: str
     name: str
     name_with_namespace: str
@@ -102,7 +103,6 @@ class ProjectsDataRetriever:
         df['namespace'] = df['namespace'].apply(str)
         df.to_sql("projects", connect_to_db(), if_exists="replace", index=False)
         logger.info("Data saved to database.")
-        
 
     def refresh_data(self, group_name):
         self.retrieve_data(group_name)
@@ -110,7 +110,10 @@ class ProjectsDataRetriever:
         logger.info(f"Data refreshed for group: {group_name}")
 
 if __name__ == "__main__":
- 
+
     ProjectsDataRetriever().refresh_data(group_name="test-group")
     df = pd.read_sql("select * from projects", connect_to_db())
+    # print all columns and rows
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_rows', None)
     print(df.head())

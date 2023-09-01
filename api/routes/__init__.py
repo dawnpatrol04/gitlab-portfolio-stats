@@ -4,6 +4,7 @@ from .project_routes import router as project_router
 from .commit_routes import router as commit_router
 from .general_routes import router as general_router
 from .value_routes import router as value_router
+from .project_routes_v2 import router as project_router_v2
 
 
 

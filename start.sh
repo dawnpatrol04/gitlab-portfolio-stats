@@ -12,8 +12,8 @@ source .venv/bin/activate
 
 # # Install required packages
 # echo "Installing requirements..."
-# pip install --proxy   -r requirements.txt
+pip install  -r requirements.txt
 
 # # # Start the application
 # echo "Starting the application..."
-# uvicorn main:app --reload
+uvicorn main:app --reload

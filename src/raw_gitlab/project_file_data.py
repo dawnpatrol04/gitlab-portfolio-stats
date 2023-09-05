@@ -22,7 +22,11 @@ def fetch_all_project_trees(group_name):
     project_trees = {}
     for project in all_projects:
         full_project = gl.projects.get(project.id)
-        project_trees[full_project.id] = full_project.repository_tree(all=True)
+        logger.info(f"Pull Tree - {project.id}")
+        try:
+            project_trees[full_project.id] = full_project.repository_tree(all=True)
+        except Exception as e:
+            logger.error(f"pull tree error {project.id} - {e}")
     return project_trees
 
 def search_project_tree_for_files(project, file_to_search, project_trees, wildcard=False, path=''):

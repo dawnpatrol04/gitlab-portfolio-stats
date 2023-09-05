@@ -8,9 +8,10 @@ def extract_docker_image(content):
     return match.group(1) if match else None
 
 def extract_gitlab_runner(content):
-    """Extract the default runner from .gitlab-ci.yml content."""
-    match = re.search(r'^default:\s*([^\s]+)', content, re.MULTILINE)
+    """Extract the default runner tag from .gitlab-ci.yml content."""
+    match = re.search(r'^default:\s*?\ntag:\s*?\-\s*?([^\s]+)', content, re.MULTILINE)
     return match.group(1) if match else None
+
 
 def search_cyberark_in_env(content):
     """Check for cyberark in .env content."""

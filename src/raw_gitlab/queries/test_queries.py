@@ -52,3 +52,5 @@ df = get_file_counts_by_project()
 # show all columns
 pd.set_option('display.max_columns', None)
 print(df)
+# save to CSV
+df.to_csv('project_file_data.csv', index=False)

@@ -15,8 +15,8 @@ def connect_to_gitlab():
         raise EnvironmentError("GITLAB_URL and GITLAB_TOKEN must be set in the environment or in a .env file.")
     
     # Connect and authenticate with GitLab using the provided URL and token
-    gl = gitlab.Gitlab(gl_url, private_token=gl_token)
-    
+    gl = gitlab.Gitlab(gl_url, private_token=gl_token, keep_base_url=True)
+
     # Optional: You can test the connection by fetching the current user's details
     # gl.user.get_current()
     

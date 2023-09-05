@@ -1,7 +1,7 @@
 from fastapi import APIRouter 
 import pandas as pd
 from src.utils.database import connect_to_db
-
+from src.raw_gitlab.project_file_data import process_and_enrich_gitlab_data
 
 from datetime import datetime
 
@@ -59,3 +59,11 @@ def project_details():
     return result
 
 
+@router.post("/projects/process-and-enrich/", tags=["projects"])
+def process_and_enrich_data():
+    """Trigger processing and enrichment of GitLab data."""
+    try:
+        process_and_enrich_gitlab_data()
+        return {"status": "success", "message": "GitLab data processed and enriched successfully."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

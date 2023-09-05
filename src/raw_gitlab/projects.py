@@ -1,12 +1,15 @@
+import os
 from dataclasses import dataclass
 from datetime import datetime
 
 import pandas as pd
+from dotenv import find_dotenv, load_dotenv
 
 from src.utils.database import connect_to_db
 from src.utils.gitlab_connect import connect_to_gitlab
 from src.utils.logger import setup_logger
 
+load_dotenv(find_dotenv())
 logger = setup_logger("gitlab_logger", "gitlab_log.txt")
 
 @dataclass
@@ -111,7 +114,7 @@ class ProjectsDataRetriever:
 
 if __name__ == "__main__":
 
-    ProjectsDataRetriever().refresh_data(group_name="test-group")
+    ProjectsDataRetriever().refresh_data(group_name=os.getenv('GITLAB_GROUP'))
     df = pd.read_sql("select * from projects", connect_to_db())
     # print all columns and rows
     pd.set_option('display.max_columns', None)

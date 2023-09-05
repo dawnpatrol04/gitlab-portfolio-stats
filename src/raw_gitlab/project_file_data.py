@@ -29,8 +29,12 @@ def search_project_tree_for_files(project, file_to_search, project_trees, wildca
     tree = project_trees.get(project.id, []) if not path else project.repository_tree(path=path, all=True)
     found_files = []
 
-    for item in tree:
+    for index, item in enumerate(tree, start=1):
         lower_name = item['name'].lower()
+        
+        # Logging the current item being processed
+        logger.info(f"Processing {index}/{len(tree)}: {item['name']} in project {project.name}")
+
         if wildcard and file_to_search.lower() in lower_name:
             found_files.append({
                 'name': item['name'],
@@ -44,7 +48,11 @@ def search_project_tree_for_files(project, file_to_search, project_trees, wildca
 
         # If the item is a directory, search recursively
         if item['type'] == 'tree':
+            logger.info(f"Entering directory {item['name']} in project {project.name}")
             found_files.extend(search_project_tree_for_files(project, file_to_search, project_trees, wildcard, path=item['path']))
+
+    return found_files
+
 
     return found_files
 

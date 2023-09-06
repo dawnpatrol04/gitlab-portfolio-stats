@@ -8,7 +8,7 @@ def get_file_counts_by_project():
     # Define the SQL query
     query = """
 
- 
+
 WITH 
 branch_aggregation AS (
     SELECT 
@@ -28,7 +28,42 @@ recent_pipelines AS (
     WHERE 
         created_at >= date('now', '-6 months')
     GROUP BY project_id
+),
+
+docker_analysis AS (
+    SELECT
+        project_id,
+        COUNT(CASE WHEN LOWER(file_name) NOT LIKE 'dockerfile' THEN 1 END) AS count_not_dockerfile,
+        COUNT(file_name) AS total_files,
+        COUNT(CASE WHEN image_name NOT LIKE '%jaov%' THEN 1 END) AS count_image_not_jaov,
+        CASE 
+            WHEN COUNT(file_name)  = 0 THEN ''
+            WHEN COUNT(CASE WHEN image_name NOT LIKE '%jaov%' THEN 1 END) != 0 THEN '4'
+            WHEN COUNT(CASE WHEN LOWER(file_name) NOT LIKE 'dockerfile' THEN 1 END) > 1 THEN '4'
+            WHEN COUNT(file_name) = 1 AND COUNT(CASE WHEN LOWER(file_name) NOT LIKE 'dockerfile' THEN 1 END) = 0 THEN '4'
+            ELSE ''
+        END AS container_badge
+    FROM docker_search
+    GROUP BY project_id
+),
+
+cicd_analysis AS (
+    SELECT
+        project_id,
+        CASE 
+            WHEN SUM(CASE WHEN lower(file_name)  = 'jenkinsfile' THEN 1 ELSE 0 END) > 0 THEN '4'
+            WHEN SUM(CASE WHEN file_name = '.gitlab-ci.yml' THEN 1 ELSE 0 END) > 0 THEN '1'
+            ELSE ''
+        END AS cicd_badge
+    FROM (
+        SELECT project_id, file_name FROM jenkins_search
+        UNION ALL
+        SELECT project_id, file_name FROM gitlabci_search
+    ) combined
+    GROUP BY project_id
 )
+
+
 
 SELECT 
     p.id AS project_id, 
@@ -45,7 +80,7 @@ SELECT
         WHEN (CAST(strftime('%Y', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 1, 4) AS INTEGER)) * 12 +
              (CAST(strftime('%m', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 6, 2) AS INTEGER)) <= 6 THEN 3
         ELSE 4 
-    END AS activity_icon,
+    END AS activity_badge,
     COALESCE(ba.branch_count, 0) AS branch_count,
     COALESCE(ba.has_main_or_master, 0) AS has_main_or_master,
     COALESCE(ba.has_dev, 0) AS has_dev,
@@ -54,16 +89,26 @@ SELECT
     COALESCE(ba.has_dev, 0) +
     CASE WHEN COALESCE(ba.branch_count, 0) < 5 THEN 1 ELSE 0 END AS src_ctl_badge,
     COALESCE(rp.pipeline_count_last_6_months, 0) AS pipeline_count_last_6_months,
-     COALESCE(gcs.runner_name,'' ) AS runner_name
+    COALESCE(gcs.runner_name, '') AS runner_name,
+        CASE
+        WHEN COALESCE(rp.pipeline_count_last_6_months, 0) > 0 AND COALESCE(gcs.runner_name, '') = '' THEN '4'
+        WHEN COALESCE(gcs.runner_name, '') != '' THEN '1'
+        ELSE ''
+    END AS compute_badge,
+    COALESCE(es.contains_cyberark, 0) AS cyberark,
+    COALESCE(da.count_not_dockerfile, 0) AS count_not_dockerfile,
+    COALESCE(da.total_files, 0) AS total_files,
+    COALESCE(da.count_image_not_jaov, 0) AS count_image_not_jaov,
+ COALESCE(da.container_badge, '') AS container_badge,
+    COALESCE(ca.cicd_badge, '') AS cicd_badge -- This is the new column added to the main query
 FROM projects_v2 p
 JOIN users u ON p.creator_id = u.id
 LEFT JOIN branch_aggregation ba ON p.id = ba.project_id
 LEFT JOIN recent_pipelines rp ON p.id = rp.project_id
-LEFT JOIN gitlabci_search gcs ON p.id = gcs.project_id;  -- Joining with gitlabci_search on project_id
-
-
-
-
+LEFT JOIN gitlabci_search gcs ON p.id = gcs.project_id
+LEFT JOIN env_search es ON p.id = es.project_id
+LEFT JOIN docker_analysis da ON p.id = da.project_id
+LEFT JOIN cicd_analysis ca ON p.id = ca.project_id; -- Join with cicd_analysis on project_id
 
 
     """

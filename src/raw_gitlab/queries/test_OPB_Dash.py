@@ -8,14 +8,25 @@ def get_file_counts_by_project():
     # Define the SQL query
     query = """
 
-
-WITH branch_aggregation AS (
-    SELECT
+ 
+WITH 
+branch_aggregation AS (
+    SELECT 
         project_id,
-        COUNT(*) AS branch_count,
+        COUNT(DISTINCT name) AS branch_count,
         MAX(CASE WHEN name IN ('main', 'master') THEN 1 ELSE 0 END) AS has_main_or_master,
         MAX(CASE WHEN name = 'dev' THEN 1 ELSE 0 END) AS has_dev
     FROM branches
+    GROUP BY project_id
+),
+
+recent_pipelines AS (
+    SELECT 
+        project_id,
+        COUNT(pipeline_id) AS pipeline_count_last_6_months
+    FROM pipelines
+    WHERE 
+        created_at >= date('now', '-6 months')
     GROUP BY project_id
 )
 
@@ -41,10 +52,16 @@ SELECT
     1 + -- 1 point because they're in GitLab
     COALESCE(ba.has_main_or_master, 0) +
     COALESCE(ba.has_dev, 0) +
-    CASE WHEN COALESCE(ba.branch_count, 0) < 5 THEN 1 ELSE 0 END AS src_ctl_badge
+    CASE WHEN COALESCE(ba.branch_count, 0) < 5 THEN 1 ELSE 0 END AS src_ctl_badge,
+    COALESCE(rp.pipeline_count_last_6_months, 0) AS pipeline_count_last_6_months,
+     COALESCE(gcs.runner_name,'' ) AS runner_name
 FROM projects_v2 p
 JOIN users u ON p.creator_id = u.id
-LEFT JOIN branch_aggregation ba ON p.id = ba.project_id;
+LEFT JOIN branch_aggregation ba ON p.id = ba.project_id
+LEFT JOIN recent_pipelines rp ON p.id = rp.project_id
+LEFT JOIN gitlabci_search gcs ON p.id = gcs.project_id;  -- Joining with gitlabci_search on project_id
+
+
 
 
 

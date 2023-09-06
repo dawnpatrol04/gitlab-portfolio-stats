@@ -7,4 +7,5 @@ pydantic
 SQLAlchemy
 pandas
 requests
+PyYAML
 -e .

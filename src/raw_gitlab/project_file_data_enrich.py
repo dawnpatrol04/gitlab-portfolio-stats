@@ -8,10 +8,20 @@ def extract_docker_image(content):
     return match.group(1) if match else None
 
  
+import yaml
+
 def extract_gitlab_runner(content):
     """Extract the default runner tag from .gitlab-ci.yml content."""
-    match = re.search(r'default:\n\s*tag:\n\s*-\s*([^\s\n]+)', content)
-    return match.group(1) if match else None
+    try:
+        data = yaml.safe_load(content)
+        tags = data.get('default', {}).get('tag', [])
+        if tags:
+            return tags[0]
+        else:
+            return None
+    except Exception as e:
+        print(f"Error parsing YAML: {e}")
+        return None
 
 
 def search_cyberark_in_env(content):

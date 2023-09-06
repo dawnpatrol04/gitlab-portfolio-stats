@@ -14,7 +14,7 @@ def extract_gitlab_runner(content):
     """Extract the default runner tag from .gitlab-ci.yml content."""
     try:
         data = yaml.safe_load(content)
-        tags = data.get('default', {}).get('tag', [])
+        tags = data.get('default', {}).get('tags', [])
         if tags:
             return tags[0]
         else:

@@ -7,9 +7,10 @@ def extract_docker_image(content):
     match = re.search(r'^FROM\s+([^\s]+)', content, re.MULTILINE)
     return match.group(1) if match else None
 
+ 
 def extract_gitlab_runner(content):
     """Extract the default runner tag from .gitlab-ci.yml content."""
-    match = re.search(r'^default:\s*?\ntag:\s*?\-\s*?([^\s]+)', content, re.MULTILINE)
+    match = re.search(r'default:\n\s*tag:\n\s*-\s*([^\s\n]+)', content)
     return match.group(1) if match else None
 
 

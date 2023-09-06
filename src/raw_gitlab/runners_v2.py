@@ -23,8 +23,12 @@ def get_runner_attributes(runner):
         value = getattr(runner, attr)
         if not callable(value) and not attr.startswith("_") and is_serializable(value):
             if isinstance(value, list):
-                # Join list into a string for simpler serialization
-                attributes[attr] = ','.join(value) if value else None
+                if value and isinstance(value[0], dict):
+                    # Convert each dictionary in the list to a string and then join them
+                    attributes[attr] = '|'.join([str(item) for item in value])
+                else:
+                    # Join list into a string for simpler serialization
+                    attributes[attr] = ','.join(map(str, value)) if value else None
             elif isinstance(value, dict):
                 # Convert dict to a string representation
                 attributes[attr] = str(value)

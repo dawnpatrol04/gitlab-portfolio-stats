@@ -103,7 +103,7 @@ def process_and_enrich_gitlab_data():
     enrich_project_file_data()
     
     # Display the result URLs
-    pd.set_option('display.max_colwidth', None) 
+    pd.set_option('display.max_colwidth', None)
     for table in ['docker_search', 'jenkins_search', 'gitlabci_search', 'env_search']:
         with connect_to_db() as conn:
             df = pd.read_sql(f"SELECT file_url FROM {table}", conn)

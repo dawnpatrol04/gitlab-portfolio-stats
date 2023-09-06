@@ -30,6 +30,7 @@ def fetch_gitlab_runner_data():
     for runner in gitlab_runners:
         runner_data = {
             'runner_id': runner.id,
+            'tags': ','.join(runner.tag_list) if runner.tag_list else None
         }
         runner_data.update(get_runner_attributes(runner))
         runners_list.append(runner_data)

@@ -100,7 +100,30 @@ SELECT
     COALESCE(da.total_files, 0) AS total_files,
     COALESCE(da.count_image_not_jaov, 0) AS count_image_not_jaov,
  COALESCE(da.container_badge, '') AS container_badge,
-    COALESCE(ca.cicd_badge, '') AS cicd_badge -- This is the new column added to the main query
+    COALESCE(ca.cicd_badge, '') AS cicd_badge, -- This is the new column added to the main query
+     CASE
+        WHEN ((CAST(strftime('%Y', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 1, 4) AS INTEGER)) * 12 +
+             (CAST(strftime('%m', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 6, 2) AS INTEGER))) <= 1 THEN 'Highly Active in last month'
+        WHEN ((CAST(strftime('%Y', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 1, 4) AS INTEGER)) * 12 +
+             (CAST(strftime('%m', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 6, 2) AS INTEGER))) <= 3 THEN 'Moderate activity in last 3 months'
+        WHEN ((CAST(strftime('%Y', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 1, 4) AS INTEGER)) * 12 +
+             (CAST(strftime('%m', 'now') AS INTEGER) - CAST(SUBSTR(p.last_activity_at, 6, 2) AS INTEGER))) <= 6 THEN 'Low activity in last 6 months'
+        ELSE 'Inactive for more than 6 months'
+    END AS activity_badge_description,
+    CASE
+        WHEN COALESCE(rp.pipeline_count_last_6_months, 0) > 0 AND COALESCE(gcs.runner_name, '') = '' THEN 'Has recent pipelines but no runner'
+        WHEN COALESCE(gcs.runner_name, '') != '' THEN 'Has a runner configured'
+        ELSE 'No recent pipelines or runner'
+    END AS compute_badge_description,
+    CASE 
+        WHEN COALESCE(da.container_badge, '') = '4' THEN 'Multiple docker files or images not using "jaov"'
+        ELSE 'Container setup looks standard'
+    END AS container_badge_description,
+    CASE 
+        WHEN COALESCE(ca.cicd_badge, '') = '4' THEN 'Uses Jenkins for CI/CD'
+        WHEN COALESCE(ca.cicd_badge, '') = '1' THEN 'Uses GitLab CI/CD'
+        ELSE 'No CI/CD configuration found'
+    END AS cicd_badge_description
 FROM projects_v2 p
 JOIN users u ON p.creator_id = u.id
 LEFT JOIN branch_aggregation ba ON p.id = ba.project_id

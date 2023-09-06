@@ -1,6 +1,5 @@
 import pandas as pd
 from src.utils.database import connect_to_db
-
 def get_file_counts_by_project():
     # Get the database connection from connect_to_db
     connection = connect_to_db()
@@ -32,13 +31,15 @@ def get_file_counts_by_project():
     )
     SELECT
         a.*,
-        d.image_name,
-        g.runner_name,
-        e.contains_cyberark
+        MAX(d.image_name) AS image_name,               -- Aggregate here
+        MAX(g.runner_name) AS runner_name,             -- Aggregate here
+        MAX(e.contains_cyberark) AS contains_cyberark  -- Aggregate here
     FROM aggregated a
     LEFT JOIN docker_search d ON a.project_id = d.project_id
     LEFT JOIN gitlabci_search g ON a.project_id = g.project_id
-    LEFT JOIN env_search e ON a.project_id = e.project_id;
+    LEFT JOIN env_search e ON a.project_id = e.project_id
+    GROUP BY a.project_id, a.project_name, a.Dockerfiles, a.Jenkinsfiles, a.gitlab_cis, a.envs, 
+             a.Dockerfile_file_url, a.Jenkinsfile_file_url, a.gitlab_ci_file_url, a.env_file_url;
     """
 
     # Fetch data into a DataFrame
@@ -46,6 +47,7 @@ def get_file_counts_by_project():
     connection.close()
     
     return df
+
 
 # Example usage:
 df = get_file_counts_by_project()
